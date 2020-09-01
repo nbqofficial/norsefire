@@ -1,0 +1,86 @@
+;
+; kernelmode.inf
+;
+
+[Version]
+Signature="$WINDOWS NT$"
+Class=Sample ; TODO: edit Class
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171} ; TODO: edit ClassGuid
+Provider=%ManufacturerName%
+CatalogFile=kernelmode.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
+
+[DestinationDirs]
+DefaultDestDir = 12
+kernelmode_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
+
+[ClassInstall32]
+Addreg=SampleClassReg
+
+[SampleClassReg]
+HKR,,,0,%ClassName%
+HKR,,Icon,,-5
+
+[SourceDisksNames]
+1 = %DiskName%,,,""
+
+[SourceDisksFiles]
+kernelmode.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
+
+;*****************************************
+; Install Section
+;*****************************************
+
+[Manufacturer]
+%ManufacturerName%=Standard,NT$ARCH$
+
+[Standard.NT$ARCH$]
+%kernelmode.DeviceDesc%=kernelmode_Device, Root\kernelmode ; TODO: edit hw-id
+
+[kernelmode_Device.NT]
+CopyFiles=Drivers_Dir
+
+[Drivers_Dir]
+kernelmode.sys
+
+;-------------- Service installation
+[kernelmode_Device.NT.Services]
+AddService = kernelmode,%SPSVCINST_ASSOCSERVICE%, kernelmode_Service_Inst
+
+; -------------- kernelmode driver install sections
+[kernelmode_Service_Inst]
+DisplayName    = %kernelmode.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\kernelmode.sys
+
+;
+;--- kernelmode_Device Coinstaller installation ------
+;
+
+[kernelmode_Device.NT.CoInstallers]
+AddReg=kernelmode_Device_CoInstaller_AddReg
+CopyFiles=kernelmode_Device_CoInstaller_CopyFiles
+
+[kernelmode_Device_CoInstaller_AddReg]
+HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
+
+[kernelmode_Device_CoInstaller_CopyFiles]
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
+
+[kernelmode_Device.NT.Wdf]
+KmdfService =  kernelmode, kernelmode_wdfsect
+[kernelmode_wdfsect]
+KmdfLibraryVersion = $KMDFVERSION$
+
+[Strings]
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="<Your manufacturer name>" ;TODO: Replace with your manufacturer name
+ClassName="Samples" ; TODO: edit ClassName
+DiskName = "kernelmode Installation Disk"
+kernelmode.DeviceDesc = "kernelmode Device"
+kernelmode.SVCDESC = "kernelmode Service"
